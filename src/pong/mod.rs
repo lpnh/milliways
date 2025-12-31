@@ -1,5 +1,5 @@
 mod components;
-mod mode_selection;
+pub mod mode_selection;
 mod resources;
 mod spawning;
 mod systems;

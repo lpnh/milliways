@@ -1,6 +1,6 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{Pause, menus::Menu, screens::Screen};
+use crate::{Pause, menus::Menu, pong::mode_selection::ModeSelectionMenu, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -9,6 +9,7 @@ pub(super) fn plugin(app: &mut App) {
             (pause, spawn_pause_overlay, open_pause_menu).run_if(
                 in_state(Screen::PongGame)
                     .and(in_state(Menu::None))
+                    .and(not_in_mode_selection)
                     .and(input_just_pressed(KeyCode::KeyP).or(input_just_pressed(KeyCode::Escape))),
             ),
             close_menu.run_if(
@@ -23,6 +24,10 @@ pub(super) fn plugin(app: &mut App) {
         OnEnter(Menu::None),
         unpause.run_if(in_state(Screen::PongGame)),
     );
+}
+
+fn not_in_mode_selection(query: Query<(), With<ModeSelectionMenu>>) -> bool {
+    query.is_empty()
 }
 
 fn unpause(mut next_pause: ResMut<NextState<Pause>>) {

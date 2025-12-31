@@ -1,20 +1,26 @@
 use bevy::prelude::*;
 
 use crate::{
+    asset_tracking::ResourceHandles,
     audio::{SoundEffects, sfx},
     menus::Menu,
+    pong::PongGameMode,
     screens::Screen,
     ui::{menu::*, palette::*},
 };
 
 pub(super) fn plugin(app: &mut App) {
+    app.init_resource::<MenuNavigation>();
     app.add_systems(
         Update,
         (
+            auto_select_first_item,
             apply_interaction_palette,
             handle_menu_navigation,
             handle_menu_selection,
-        ),
+            update_menu_visuals,
+        )
+            .chain(),
     );
 }
 
@@ -24,6 +30,15 @@ pub struct InteractionPalette {
     pub none: Color,
     pub hovered: Color,
     pub pressed: Color,
+}
+
+fn auto_select_first_item(
+    mut nav: ResMut<MenuNavigation>,
+    items: Query<Entity, (With<MenuItem>, Added<MenuItem>)>,
+) {
+    if let Some(first) = items.iter().next() {
+        nav.selected = Some(first);
+    }
 }
 
 fn apply_interaction_palette(
@@ -46,60 +61,68 @@ pub fn handle_menu_navigation(
     mut commands: Commands,
     sfx_handles: Res<SoundEffects>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut items: Query<(&mut MenuItem, &Children)>,
-    mut arrows: Query<&mut Text, With<SelectionArrow>>,
-    mut texts: Query<&mut TextColor, With<MenuText>>,
+    mut nav: ResMut<MenuNavigation>,
+    items: Query<Entity, With<MenuItem>>,
 ) {
-    let mut current_index = None;
-    let mut total = 0;
+    let items_vec: Vec<Entity> = items.iter().collect();
 
-    for (item, _) in items.iter() {
-        if item.selected {
-            current_index = Some(item.index);
-        }
-        total += 1;
+    if items_vec.is_empty() {
+        return;
     }
 
-    let Some(current) = current_index else {
+    let Some(selected_entity) = nav.selected else {
         return;
     };
 
-    if total == 0 {
+    let Some(current_pos) = items_vec.iter().position(|&e| e == selected_entity) else {
         return;
-    }
+    };
 
-    let mut new_index = None;
+    let total = items_vec.len();
+    let mut new_pos = None;
 
     if keyboard.just_pressed(KeyCode::ArrowDown)
         || keyboard.just_pressed(KeyCode::KeyJ)
         || keyboard.just_pressed(KeyCode::KeyS)
     {
-        new_index = Some((current + 1) % total);
+        new_pos = Some((current_pos + 1) % total);
     } else if keyboard.just_pressed(KeyCode::ArrowUp)
         || keyboard.just_pressed(KeyCode::KeyK)
         || keyboard.just_pressed(KeyCode::KeyW)
     {
-        new_index = Some((current + total - 1) % total);
+        new_pos = Some((current_pos + total - 1) % total);
     }
 
-    if let Some(new_idx) = new_index {
+    if let Some(new_idx) = new_pos {
         commands.spawn((
             Name::new("Menu Cursor Move SFX"),
             sfx(sfx_handles.menu_move.clone()),
         ));
 
-        for (mut item, children) in &mut items {
-            let is_selected = item.index == new_idx;
-            item.selected = is_selected;
+        nav.selected = Some(items_vec[new_idx]);
+    }
+}
 
-            for child in children.iter() {
-                if let Ok(mut arrow_text) = arrows.get_mut(child) {
-                    arrow_text.0 = if is_selected { ">" } else { " " }.to_string();
-                }
+fn update_menu_visuals(
+    nav: Res<MenuNavigation>,
+    items: Query<(Entity, &Children), With<MenuItem>>,
+    mut arrows: Query<&mut Text, With<SelectionArrow>>,
+    mut texts: Query<&mut TextColor, With<MenuText>>,
+) {
+    if !nav.is_changed() {
+        return;
+    }
 
-                if let Ok(mut text_color) = texts.get_mut(child) {
-                    text_color.0 = if is_selected { TEXT } else { OVERLAY0 };
-                }
+    for (entity, children) in &items {
+        let is_selected = nav.selected == Some(entity);
+
+        for &child in children {
+            if let Ok(mut arrow_text) = arrows.get_mut(child) {
+                arrow_text.0 = if is_selected { ">" } else { " " }.to_string();
+            }
+
+            if let Ok(mut text_color) = texts.get_mut(child) {
+                text_color.0 = if is_selected { TEXT } else { OVERLAY0 };
             }
         }
     }
@@ -109,7 +132,10 @@ pub fn handle_menu_selection(
     mut commands: Commands,
     sfx_handles: Res<SoundEffects>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    items: Query<(&MenuItem, &MenuAction)>,
+    nav: Res<MenuNavigation>,
+    items: Query<&MenuItem>,
+    resource_handles: Res<ResourceHandles>,
+    mut pong_mode: ResMut<PongGameMode>,
     mut next_screen: ResMut<NextState<Screen>>,
     mut next_menu: ResMut<NextState<Menu>>,
     #[cfg(not(target_family = "wasm"))] mut app_exit: MessageWriter<AppExit>,
@@ -118,33 +144,42 @@ pub fn handle_menu_selection(
         return;
     }
 
-    for (item, action) in &items {
-        if item.selected {
-            commands.spawn((
-                Name::new("Menu Selection SFX"),
-                sfx(sfx_handles.menu_select.clone()),
-            ));
+    let Some(item) = nav.selected.and_then(|entity| items.get(entity).ok()) else {
+        return;
+    };
 
-            execute_action(
-                action,
-                &mut next_screen,
-                &mut next_menu,
-                #[cfg(not(target_family = "wasm"))]
-                &mut app_exit,
-            );
-            break;
-        }
-    }
+    commands.spawn((
+        Name::new("Menu Selection SFX"),
+        sfx(sfx_handles.menu_select.clone()),
+    ));
+
+    execute_action(
+        &item.action,
+        &resource_handles,
+        &mut pong_mode,
+        &mut next_screen,
+        &mut next_menu,
+        #[cfg(not(target_family = "wasm"))]
+        &mut app_exit,
+    );
 }
 
 fn execute_action(
     action: &MenuAction,
+    resource_handles: &ResourceHandles,
+    pong_mode: &mut ResMut<PongGameMode>,
     next_screen: &mut ResMut<NextState<Screen>>,
     next_menu: &mut ResMut<NextState<Menu>>,
     #[cfg(not(target_family = "wasm"))] app_exit: &mut MessageWriter<AppExit>,
 ) {
     match action {
-        MenuAction::GoToGameSelection => next_screen.set(Screen::GameSelection),
+        MenuAction::GoToGameSelection => {
+            if resource_handles.is_all_done() {
+                next_screen.set(Screen::GameSelection);
+            } else {
+                next_screen.set(Screen::Loading);
+            }
+        }
         MenuAction::GoToTitle => next_screen.set(Screen::Title),
         MenuAction::GoToPongGame => next_screen.set(Screen::PongGame),
         MenuAction::OpenSettings => next_menu.set(Menu::Settings),
@@ -154,7 +189,12 @@ fn execute_action(
         MenuAction::RestartGame => {
             next_menu.set(Menu::None);
         }
-        MenuAction::StartPongSinglePlayer | MenuAction::StartPongMultiplayer => {}
+        MenuAction::StartPongSinglePlayer => {
+            pong_mode.mode = crate::pong::GameMode::SinglePlayer;
+        }
+        MenuAction::StartPongMultiplayer => {
+            pong_mode.mode = crate::pong::GameMode::Multiplayer;
+        }
         #[cfg(not(target_family = "wasm"))]
         MenuAction::ExitApp => {
             app_exit.write(AppExit::Success);

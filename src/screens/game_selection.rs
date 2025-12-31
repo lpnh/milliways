@@ -10,6 +10,8 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Game Selection"),
@@ -26,24 +28,7 @@ fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<T
             DespawnOnExit(Screen::GameSelection),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "Select Game");
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::GoToPongGame,
-                "Pong",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                1,
-                false,
-                MenuAction::GoToTitle,
-                "Back",
-            );
+            menu.item(parent, MenuAction::GoToPongGame, "Pong");
+            menu.back_button(parent, MenuAction::GoToTitle);
         });
 }

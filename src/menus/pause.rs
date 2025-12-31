@@ -14,6 +14,8 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn spawn_pause_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Pause Menu"),
@@ -31,34 +33,10 @@ fn spawn_pause_menu(mut commands: Commands, font: Res<PressStart2P>, typography:
             DespawnOnExit(Menu::Pause),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "Game Paused");
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::CloseMenu,
-                "Resume",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                1,
-                false,
-                MenuAction::RestartGame,
-                "Restart",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                2,
-                false,
-                MenuAction::GoToTitle,
-                "Quit to Title",
-            );
+            menu.title(parent, "Game Paused");
+            menu.item(parent, MenuAction::CloseMenu, "Resume");
+            menu.item(parent, MenuAction::RestartGame, "Restart");
+            menu.item(parent, MenuAction::GoToTitle, "Quit to Title");
         });
 }
 

@@ -5,6 +5,34 @@ use crate::ui::{PressStart2P, Typography, palette::*};
 pub const MENU_ARROW_WIDTH: f32 = 30.0;
 pub const MENU_ITEM_GAP: f32 = 8.0;
 
+pub struct MenuBuilder<'a> {
+    font: &'a PressStart2P,
+    typography: &'a Typography,
+}
+
+impl<'a> MenuBuilder<'a> {
+    pub fn new(font: &'a PressStart2P, typography: &'a Typography) -> Self {
+        Self { font, typography }
+    }
+
+    pub fn title(&self, parent: &mut ChildSpawnerCommands, text: impl Into<String>) {
+        spawn_title(parent, self.font, self.typography, text)
+    }
+
+    pub fn item(
+        &self,
+        parent: &mut ChildSpawnerCommands,
+        action: MenuAction,
+        text: impl Into<String>,
+    ) {
+        spawn_menu_item(parent, self.font, self.typography, action, text)
+    }
+
+    pub fn back_button(&self, parent: &mut ChildSpawnerCommands, action: MenuAction) {
+        spawn_back_button_section(parent, self.font, self.typography, action)
+    }
+}
+
 pub fn spawn_title(
     parent: &mut ChildSpawnerCommands,
     font: &PressStart2P,
@@ -18,15 +46,12 @@ pub fn spawn_menu_item(
     parent: &mut ChildSpawnerCommands,
     font: &PressStart2P,
     typography: &Typography,
-    index: usize,
-    selected: bool,
     action: MenuAction,
     text: impl Into<String>,
 ) {
     parent
         .spawn((
-            MenuItem { index, selected },
-            action,
+            MenuItem { action },
             Node {
                 flex_direction: FlexDirection::Row,
                 align_items: AlignItems::Center,
@@ -38,7 +63,7 @@ pub fn spawn_menu_item(
         .with_children(|item| {
             item.spawn((
                 SelectionArrow,
-                Text::new(if selected { ">" } else { " " }),
+                Text::new(" "),
                 typography.heading(&font.0),
                 TextColor(TEXT),
                 Node {
@@ -51,8 +76,27 @@ pub fn spawn_menu_item(
                 MenuText,
                 Text::new(text),
                 typography.heading(&font.0),
-                TextColor(if selected { TEXT } else { OVERLAY0 }),
+                TextColor(OVERLAY0),
             ));
+        });
+}
+
+pub fn spawn_back_button_section(
+    parent: &mut ChildSpawnerCommands,
+    font: &PressStart2P,
+    typography: &Typography,
+    action: MenuAction,
+) {
+    parent
+        .spawn((
+            Name::new("Back Button Container"),
+            Node {
+                margin: UiRect::top(Val::Px(20.0)),
+                ..default()
+            },
+        ))
+        .with_children(|button_parent| {
+            spawn_menu_item(button_parent, font, typography, action, "Back");
         });
 }
 
@@ -74,8 +118,12 @@ pub enum MenuAction {
 
 #[derive(Component)]
 pub struct MenuItem {
-    pub index: usize,
-    pub selected: bool,
+    pub action: MenuAction,
+}
+
+#[derive(Resource, Default)]
+pub struct MenuNavigation {
+    pub selected: Option<Entity>,
 }
 
 #[derive(Component)]

@@ -18,6 +18,8 @@ fn spawn_settings_menu(
     font: Res<PressStart2P>,
     typography: Res<Typography>,
 ) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Settings Menu"),
@@ -34,23 +36,13 @@ fn spawn_settings_menu(
             DespawnOnExit(Menu::Settings),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "Settings");
-
             parent.spawn((
                 Text::new("Settings coming soon..."),
                 typography.small(&font.0),
                 TextColor(TEXT),
             ));
 
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::BackToMainMenu,
-                "Back",
-            );
+            menu.back_button(parent, MenuAction::BackToMainMenu);
         });
 }
 

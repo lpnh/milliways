@@ -7,14 +7,19 @@ use crate::{
 };
 
 #[derive(Component)]
-struct ModeSelectionMenu;
+pub struct ModeSelectionMenu;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::PongGame), spawn_menu);
-    app.add_systems(Update, handle_selection.run_if(in_state(Screen::PongGame)));
+    app.add_systems(
+        Update,
+        start_game_on_mode_change.run_if(in_state(Screen::PongGame)),
+    );
 }
 
 fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Mode Selection"),
@@ -32,75 +37,30 @@ fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<T
             DespawnOnExit(Screen::PongGame),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "Pong");
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::StartPongSinglePlayer,
-                "1 Player",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                1,
-                false,
-                MenuAction::StartPongMultiplayer,
-                "2 Players",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                2,
-                false,
-                MenuAction::GoToGameSelection,
-                "Back",
-            );
+            menu.title(parent, "Pong");
+            menu.item(parent, MenuAction::StartPongSinglePlayer, "1 Player");
+            menu.item(parent, MenuAction::StartPongMultiplayer, "2 Players");
+            menu.back_button(parent, MenuAction::GoToGameSelection);
         });
 }
 
-fn handle_selection(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    items: Query<(&MenuItem, &MenuAction)>,
+fn start_game_on_mode_change(
+    mode: Res<PongGameMode>,
     menu: Query<Entity, With<ModeSelectionMenu>>,
     mut commands: Commands,
-    mut mode: ResMut<PongGameMode>,
-    mut next_screen: ResMut<NextState<Screen>>,
     playfield: Res<PlayfieldDimensions>,
     font: Res<PressStart2P>,
     typography: Res<Typography>,
 ) {
-    if !keyboard.just_pressed(KeyCode::Enter) && !keyboard.just_pressed(KeyCode::Space) {
+    if !mode.is_changed() {
         return;
     }
 
-    for (item, action) in &items {
-        if item.selected {
-            match action {
-                MenuAction::StartPongSinglePlayer => {
-                    mode.mode = GameMode::SinglePlayer;
-                    if let Ok(entity) = menu.single() {
-                        commands.entity(entity).despawn();
-                    }
-                    spawn_pong_level(&mut commands, &mode, &playfield, &font, &typography);
-                }
-                MenuAction::StartPongMultiplayer => {
-                    mode.mode = GameMode::Multiplayer;
-                    if let Ok(entity) = menu.single() {
-                        commands.entity(entity).despawn();
-                    }
-                    spawn_pong_level(&mut commands, &mode, &playfield, &font, &typography);
-                }
-                MenuAction::GoToGameSelection => next_screen.set(Screen::GameSelection),
-                _ => {}
-            }
-            break;
-        }
+    if let Ok(entity) = menu.single() {
+        commands.entity(entity).despawn();
     }
+
+    spawn_pong_level(&mut commands, &mode, &playfield, &font, &typography);
 }
 
 fn spawn_pong_level(

@@ -137,7 +137,9 @@ fn spawn_milliways_splash(
     font: Res<PressStart2P>,
     typography: Res<Typography>,
 ) {
-    let char_colors = [RED, MAROON, PEACH, YELLOW, GREEN, TEAL, SKY, SAPPHIRE, BLUE];
+    let char_colors = [
+        RED, MAROON, FLAMINGO, ROSEWATER, TEAL, SKY, SAPPHIRE, LAVENDER, MAUVE,
+    ];
 
     let root = commands
         .spawn((

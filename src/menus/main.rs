@@ -1,18 +1,17 @@
 use bevy::prelude::*;
 
 use crate::{
-    asset_tracking::ResourceHandles,
     menus::Menu,
-    screens::Screen,
     ui::{PressStart2P, Typography, menu::*, palette::*},
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Main), spawn_menu);
-    app.add_systems(Update, handle_selection.run_if(in_state(Menu::Main)));
 }
 
 fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Main Menu"),
@@ -29,79 +28,11 @@ fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<T
             DespawnOnExit(Menu::Main),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "milliways");
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::GoToGameSelection,
-                "Play",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                1,
-                false,
-                MenuAction::OpenSettings,
-                "Settings",
-            );
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                2,
-                false,
-                MenuAction::OpenCredits,
-                "Credits",
-            );
+            menu.item(parent, MenuAction::GoToGameSelection, "Titles");
+            menu.item(parent, MenuAction::OpenSettings, "Settings");
+            menu.item(parent, MenuAction::OpenCredits, "Credits");
 
             #[cfg(not(target_family = "wasm"))]
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                3,
-                false,
-                MenuAction::ExitApp,
-                "Exit",
-            );
+            menu.item(parent, MenuAction::ExitApp, "Exit");
         });
-}
-
-fn handle_selection(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    items: Query<(&MenuItem, &MenuAction)>,
-    resource_handles: Res<ResourceHandles>,
-    mut next_screen: ResMut<NextState<Screen>>,
-    mut next_menu: ResMut<NextState<Menu>>,
-    #[cfg(not(target_family = "wasm"))] mut app_exit: MessageWriter<AppExit>,
-) {
-    if !keyboard.just_pressed(KeyCode::Enter) && !keyboard.just_pressed(KeyCode::Space) {
-        return;
-    }
-
-    for (item, action) in &items {
-        if item.selected {
-            match action {
-                MenuAction::GoToGameSelection => {
-                    if resource_handles.is_all_done() {
-                        next_screen.set(Screen::GameSelection);
-                    } else {
-                        next_screen.set(Screen::Loading);
-                    }
-                }
-                MenuAction::OpenSettings => next_menu.set(Menu::Settings),
-                MenuAction::OpenCredits => next_menu.set(Menu::Credits),
-                #[cfg(not(target_family = "wasm"))]
-                MenuAction::ExitApp => {
-                    app_exit.write(AppExit::Success);
-                }
-                _ => {}
-            }
-            break;
-        }
-    }
 }

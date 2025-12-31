@@ -18,6 +18,8 @@ fn spawn_credits_menu(
     font: Res<PressStart2P>,
     typography: Res<Typography>,
 ) {
+    let menu = MenuBuilder::new(&font, &typography);
+
     commands
         .spawn((
             Name::new("Credits Menu"),
@@ -27,6 +29,7 @@ fn spawn_credits_menu(
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
+                padding: UiRect::all(Val::Px(60.0)),
                 row_gap: Val::Px(40.0),
                 ..default()
             },
@@ -34,14 +37,21 @@ fn spawn_credits_menu(
             DespawnOnExit(Menu::Credits),
         ))
         .with_children(|parent| {
-            spawn_title(parent, &font, &typography, "Credits");
-
-            parent.spawn((
-                Text::new("Assets"),
-                typography.body(&font.0),
-                TextColor(TEXT),
-            ));
-
+            parent
+                .spawn((
+                    Name::new("Assets Title Container"),
+                    Node {
+                        margin: UiRect::bottom(Val::Px(20.0)),
+                        ..default()
+                    },
+                ))
+                .with_children(|title_parent| {
+                    title_parent.spawn((
+                        Text::new("Assets"),
+                        typography.body(&font.0),
+                        TextColor(TEXT),
+                    ));
+                });
             parent
                 .spawn((
                     Name::new("Assets Grid"),
@@ -50,6 +60,7 @@ fn spawn_credits_menu(
                         row_gap: Val::Px(10.0),
                         column_gap: Val::Px(30.0),
                         grid_template_columns: vec![GridTrack::auto(), GridTrack::auto()],
+                        padding: UiRect::all(Val::Px(20.0)),
                         ..default()
                     },
                 ))
@@ -85,15 +96,7 @@ fn spawn_credits_menu(
                     }
                 });
 
-            spawn_menu_item(
-                parent,
-                &font,
-                &typography,
-                0,
-                true,
-                MenuAction::BackToMainMenu,
-                "Back",
-            );
+            menu.back_button(parent, MenuAction::BackToMainMenu);
         });
 }
 
