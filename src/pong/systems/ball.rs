@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::pong::*;
+use crate::{
+    audio::{SoundEffects, sfx},
+    pong::*,
+};
 
 pub fn ball_movement(time: Res<Time>, mut ball_query: Query<(&Ball, &mut Transform)>) {
     for (ball, mut transform) in &mut ball_query {
@@ -10,6 +13,8 @@ pub fn ball_movement(time: Res<Time>, mut ball_query: Query<(&Ball, &mut Transfo
 }
 
 pub fn ball_wall_collision(
+    mut commands: Commands,
+    sfx_handles: Res<SoundEffects>,
     playfield: Res<PlayfieldDimensions>,
     mut ball_query: Query<(&mut Ball, &mut Transform)>,
 ) {
@@ -21,14 +26,26 @@ pub fn ball_wall_collision(
         if transform.translation.y <= min_y {
             transform.translation.y = min_y;
             ball.velocity.y = ball.velocity.y.abs();
+
+            commands.spawn((
+                Name::new("Ball Wall Collision SFX"),
+                sfx(sfx_handles.ball_collision.clone()),
+            ));
         } else if transform.translation.y >= max_y {
             transform.translation.y = max_y;
             ball.velocity.y = -ball.velocity.y.abs();
+
+            commands.spawn((
+                Name::new("Ball Wall Collision SFX"),
+                sfx(sfx_handles.ball_collision.clone()),
+            ));
         }
     }
 }
 
 pub fn ball_paddle_collision(
+    mut commands: Commands,
+    sfx_handles: Res<SoundEffects>,
     mut ball_query: Query<(&mut Ball, &mut Transform), Without<Paddle>>,
     paddle_query: Query<(&Transform, &PaddleSide), With<Paddle>>,
 ) {
@@ -63,6 +80,11 @@ pub fn ball_paddle_collision(
 
         if collision {
             ball.velocity.x = -ball.velocity.x;
+
+            commands.spawn((
+                Name::new("Ball Paddle Collision SFX"),
+                sfx(sfx_handles.ball_collision.clone()),
+            ));
 
             match side {
                 PaddleSide::Left => {

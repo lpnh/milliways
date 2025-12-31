@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    audio::{SoundEffects, sfx},
     menus::Menu,
     screens::Screen,
     ui::{menu::*, palette::*},
@@ -42,6 +43,8 @@ fn apply_interaction_palette(
 }
 
 pub fn handle_menu_navigation(
+    mut commands: Commands,
+    sfx_handles: Res<SoundEffects>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut items: Query<(&mut MenuItem, &Children)>,
     mut arrows: Query<&mut Text, With<SelectionArrow>>,
@@ -80,6 +83,11 @@ pub fn handle_menu_navigation(
     }
 
     if let Some(new_idx) = new_index {
+        commands.spawn((
+            Name::new("Menu Cursor Move SFX"),
+            sfx(sfx_handles.menu_move.clone()),
+        ));
+
         for (mut item, children) in &mut items {
             let is_selected = item.index == new_idx;
             item.selected = is_selected;
@@ -98,6 +106,8 @@ pub fn handle_menu_navigation(
 }
 
 pub fn handle_menu_selection(
+    mut commands: Commands,
+    sfx_handles: Res<SoundEffects>,
     keyboard: Res<ButtonInput<KeyCode>>,
     items: Query<(&MenuItem, &MenuAction)>,
     mut next_screen: ResMut<NextState<Screen>>,
@@ -110,6 +120,11 @@ pub fn handle_menu_selection(
 
     for (item, action) in &items {
         if item.selected {
+            commands.spawn((
+                Name::new("Menu Selection SFX"),
+                sfx(sfx_handles.menu_select.clone()),
+            ));
+
             execute_action(
                 action,
                 &mut next_screen,

@@ -1,8 +1,13 @@
 use bevy::prelude::*;
 
-use crate::pong::*;
+use crate::{
+    audio::{SoundEffects, sfx},
+    pong::*,
+};
 
 pub fn detect_scoring(
+    mut commands: Commands,
+    sfx_handles: Res<SoundEffects>,
     playfield: Res<PlayfieldDimensions>,
     mut ball_query: Query<(&Ball, &mut Transform)>,
     mut paddle_query: Query<(&mut Paddle, &PaddleSide)>,
@@ -23,6 +28,8 @@ pub fn detect_scoring(
     };
 
     if let Some(scoring_side) = scored {
+        commands.spawn((Name::new("Score Point SFX"), sfx(sfx_handles.score.clone())));
+
         for (mut paddle, side) in &mut paddle_query {
             if *side == scoring_side {
                 paddle.score += 1;

@@ -55,12 +55,16 @@ fn spawn_credits_menu(
                 ))
                 .with_children(|grid| {
                     let assets = vec![
-                        ["Press Start 2P Font", "CC0 by CodeMan38"],
+                        ["Press Start 2P", "by The Press Start 2P Project Authors (SIL Open Font License, Version 1.1)"],
                         [
                             "Bevy logo",
                             "All rights reserved by the Bevy Foundation, permission granted for splash screen use when unmodified",
                         ],
-                        ["Arcade Music Loop", "CC BY 4.0 by joshuaempyre"],
+                        ["arcade-music-loop", "by joshuaempyre (CC-BY 4.0)"],
+                        ["arcade-ui-move-cursor", "by plasterbrain (CC0 1.0 Universal)"],
+                        ["game-start", "by plasterbrain (CC0 1.0 Universal)"],
+                        ["minimalist-sci-fi-ui-cancel", "by plasterbrain (CC0 1.0 Universal)"],
+                        ["hit_01", "by Little Robot Sound Factory (CC-BY 4.0)"],
                     ];
                     for row in assets {
                         for (j, text) in row.iter().enumerate() {
