@@ -1,8 +1,10 @@
-use crate::theme::catppuccin::*;
 use bevy::prelude::*;
 
 use crate::{
-    arcade::menu::*, asset_tracking::ResourceHandles, menus::Menu, screens::Screen,
+    asset_tracking::ResourceHandles,
+    menus::Menu,
+    screens::Screen,
+    ui::{PressStart2P, Typography, menu::*, palette::*},
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -10,9 +12,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, handle_selection.run_if(in_state(Menu::Main)));
 }
 
-fn spawn_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
+fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
     commands
         .spawn((
             Name::new("Main Menu"),
@@ -29,27 +29,45 @@ fn spawn_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             DespawnOnExit(Menu::Main),
         ))
         .with_children(|parent| {
-            spawn_title!(parent, style, "milliways");
-            spawn_menu_item!(
+            spawn_title(parent, &font, &typography, "milliways");
+            spawn_menu_item(
                 parent,
-                style,
+                &font,
+                &typography,
                 0,
                 true,
                 MenuAction::GoToGameSelection,
-                "Play"
+                "Play",
             );
-            spawn_menu_item!(
+            spawn_menu_item(
                 parent,
-                style,
+                &font,
+                &typography,
                 1,
                 false,
                 MenuAction::OpenSettings,
-                "Settings"
+                "Settings",
             );
-            spawn_menu_item!(parent, style, 2, false, MenuAction::OpenCredits, "Credits");
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                2,
+                false,
+                MenuAction::OpenCredits,
+                "Credits",
+            );
 
             #[cfg(not(target_family = "wasm"))]
-            spawn_menu_item!(parent, style, 3, false, MenuAction::ExitApp, "Exit");
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                3,
+                false,
+                MenuAction::ExitApp,
+                "Exit",
+            );
         });
 }
 

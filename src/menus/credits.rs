@@ -1,7 +1,9 @@
-use crate::theme::catppuccin::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{arcade::menu::*, menus::Menu};
+use crate::{
+    menus::Menu,
+    ui::{PressStart2P, Typography, menu::*, palette::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Credits), spawn_credits_menu);
@@ -11,9 +13,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_credits_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
+fn spawn_credits_menu(
+    mut commands: Commands,
+    font: Res<PressStart2P>,
+    typography: Res<Typography>,
+) {
     commands
         .spawn((
             Name::new("Credits Menu"),
@@ -30,15 +34,11 @@ fn spawn_credits_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             DespawnOnExit(Menu::Credits),
         ))
         .with_children(|parent| {
-            spawn_title!(parent, style, "Credits");
+            spawn_title(parent, &font, &typography, "Credits");
 
             parent.spawn((
                 Text::new("Assets"),
-                TextFont {
-                    font: style.font.clone(),
-                    font_size: style.header_size,
-                    ..default()
-                },
+                typography.body(&font.0),
                 TextColor(TEXT),
             ));
 
@@ -66,11 +66,7 @@ fn spawn_credits_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         for (j, text) in row.iter().enumerate() {
                             grid.spawn((
                                 Text::new(*text),
-                                TextFont {
-                                    font: style.font.clone(),
-                                    font_size: style.small_text_size,
-                                    ..default()
-                                },
+                                typography.small(&font.0),
                                 TextColor(TEXT),
                                 Node {
                                     justify_self: if j == 0 {
@@ -85,7 +81,15 @@ fn spawn_credits_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     }
                 });
 
-            spawn_menu_item!(parent, style, 0, true, MenuAction::BackToMainMenu, "Back");
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                0,
+                true,
+                MenuAction::BackToMainMenu,
+                "Back",
+            );
         });
 }
 

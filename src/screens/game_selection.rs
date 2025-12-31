@@ -1,15 +1,15 @@
-use crate::theme::catppuccin::*;
 use bevy::prelude::*;
 
-use crate::{arcade::menu::*, screens::Screen};
+use crate::{
+    screens::Screen,
+    ui::{PressStart2P, Typography, menu::*, palette::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::GameSelection), spawn_menu);
 }
 
-fn spawn_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
+fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
     commands
         .spawn((
             Name::new("Game Selection"),
@@ -26,8 +26,24 @@ fn spawn_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             DespawnOnExit(Screen::GameSelection),
         ))
         .with_children(|parent| {
-            spawn_title!(parent, style, "Select Game");
-            spawn_menu_item!(parent, style, 0, true, MenuAction::GoToPongGame, "Pong");
-            spawn_menu_item!(parent, style, 1, false, MenuAction::GoToTitle, "Back");
+            spawn_title(parent, &font, &typography, "Select Game");
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                0,
+                true,
+                MenuAction::GoToPongGame,
+                "Pong",
+            );
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                1,
+                false,
+                MenuAction::GoToTitle,
+                "Back",
+            );
         });
 }

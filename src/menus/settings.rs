@@ -1,7 +1,9 @@
-use crate::theme::catppuccin::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{arcade::menu::*, menus::Menu};
+use crate::{
+    menus::Menu,
+    ui::{PressStart2P, Typography, menu::*, palette::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Settings), spawn_settings_menu);
@@ -11,9 +13,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_settings_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
+fn spawn_settings_menu(
+    mut commands: Commands,
+    font: Res<PressStart2P>,
+    typography: Res<Typography>,
+) {
     commands
         .spawn((
             Name::new("Settings Menu"),
@@ -30,19 +34,23 @@ fn spawn_settings_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             DespawnOnExit(Menu::Settings),
         ))
         .with_children(|parent| {
-            spawn_title!(parent, style, "Settings");
+            spawn_title(parent, &font, &typography, "Settings");
 
             parent.spawn((
                 Text::new("Settings coming soon..."),
-                TextFont {
-                    font: style.font.clone(),
-                    font_size: style.text_size,
-                    ..default()
-                },
+                typography.small(&font.0),
                 TextColor(TEXT),
             ));
 
-            spawn_menu_item!(parent, style, 0, true, MenuAction::BackToMainMenu, "Back");
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                0,
+                true,
+                MenuAction::BackToMainMenu,
+                "Back",
+            );
         });
 }
 

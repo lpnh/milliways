@@ -1,7 +1,6 @@
 #![cfg_attr(bevy_lint, feature(register_tool), register_tool(bevy))]
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
-mod arcade;
 mod asset_tracking;
 mod audio;
 #[cfg(feature = "dev")]
@@ -9,7 +8,7 @@ mod dev_tools;
 mod menus;
 mod pong;
 mod screens;
-mod theme;
+mod ui;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
@@ -39,7 +38,6 @@ impl Plugin for AppPlugin {
         );
 
         app.add_plugins((
-            arcade::plugin,
             asset_tracking::plugin,
             audio::plugin,
             #[cfg(feature = "dev")]
@@ -47,7 +45,7 @@ impl Plugin for AppPlugin {
             menus::plugin,
             pong::plugin,
             screens::plugin,
-            theme::plugin,
+            ui::plugin,
         ));
 
         app.configure_sets(

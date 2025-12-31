@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use bevy::prelude::*;
 
-use crate::theme::catppuccin::*;
+use crate::ui::{PressStart2P, Typography, palette::*};
 
 pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     (
@@ -21,11 +21,11 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
     )
 }
 
-pub fn label(text: impl Into<String>) -> impl Bundle {
+pub fn label(text: impl Into<String>, font: &PressStart2P, typography: &Typography) -> impl Bundle {
     (
         Name::new("Label"),
         Text(text.into()),
-        TextFont::from_font_size(24.0),
+        typography.body(&font.0),
         TextColor(TEXT),
     )
 }

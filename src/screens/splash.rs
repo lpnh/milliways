@@ -1,4 +1,3 @@
-use crate::theme::catppuccin::*;
 use bevy::{
     image::{ImageLoaderSettings, ImageSampler},
     input::common_conditions::input_just_pressed,
@@ -7,9 +6,8 @@ use bevy::{
 
 use crate::{
     AppSystems,
-    arcade::menu::MenuStyle,
     screens::Screen,
-    theme::prelude::*,
+    ui::{PressStart2P, Typography, palette::*, prelude::*},
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -134,20 +132,12 @@ fn skip_bevy_splash(mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::MilliwaysSplash);
 }
 
-fn spawn_milliways_splash(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
-    let char_colors = [
-        RED,
-        MAROON,
-        PEACH,
-        YELLOW,
-        GREEN,
-        TEAL,
-        SKY,
-        SAPPHIRE,
-        BLUE,
-    ];
+fn spawn_milliways_splash(
+    mut commands: Commands,
+    font: Res<PressStart2P>,
+    typography: Res<Typography>,
+) {
+    let char_colors = [RED, MAROON, PEACH, YELLOW, GREEN, TEAL, SKY, SAPPHIRE, BLUE];
 
     let root = commands
         .spawn((
@@ -175,11 +165,7 @@ fn spawn_milliways_splash(mut commands: Commands, asset_server: Res<AssetServer>
             .spawn((
                 Name::new(format!("Letter '{}'", ch)),
                 Text::new(ch.to_string()),
-                TextFont {
-                    font: style.font.clone(),
-                    font_size: 64.0,
-                    ..default()
-                },
+                typography.custom(&font.0, 64.0),
                 TextColor(color),
                 TextFadeInOut {
                     total_duration: SPLASH_DURATION_SECS,

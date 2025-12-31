@@ -36,7 +36,7 @@ pub fn detect_scoring(
 
 pub fn update_score_displays(
     paddle_query: Query<(&Paddle, &PaddleSide)>,
-    mut display_query: Query<(&ScoreDisplay, &mut Text)>,
+    mut display_query: Query<(&ScoreDisplay, &mut Text2d)>,
 ) {
     for (display, mut text) in &mut display_query {
         for (paddle, side) in &paddle_query {

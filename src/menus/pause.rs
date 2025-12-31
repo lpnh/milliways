@@ -1,7 +1,9 @@
-use crate::theme::catppuccin::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
-use crate::{arcade::menu::*, menus::Menu};
+use crate::{
+    menus::Menu,
+    ui::{PressStart2P, Typography, menu::*},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Menu::Pause), spawn_pause_menu);
@@ -11,9 +13,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let style = MenuStyle::new(&asset_server);
-
+fn spawn_pause_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
     commands
         .spawn((
             Name::new("Pause Menu"),
@@ -31,16 +31,33 @@ fn spawn_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             DespawnOnExit(Menu::Pause),
         ))
         .with_children(|parent| {
-            spawn_title!(parent, style, "Game Paused");
-            spawn_menu_item!(parent, style, 0, true, MenuAction::CloseMenu, "Resume");
-            spawn_menu_item!(parent, style, 1, false, MenuAction::RestartGame, "Restart");
-            spawn_menu_item!(
+            spawn_title(parent, &font, &typography, "Game Paused");
+            spawn_menu_item(
                 parent,
-                style,
+                &font,
+                &typography,
+                0,
+                true,
+                MenuAction::CloseMenu,
+                "Resume",
+            );
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
+                1,
+                false,
+                MenuAction::RestartGame,
+                "Restart",
+            );
+            spawn_menu_item(
+                parent,
+                &font,
+                &typography,
                 2,
                 false,
                 MenuAction::GoToTitle,
-                "Quit to Title"
+                "Quit to Title",
             );
         });
 }
