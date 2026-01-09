@@ -8,11 +8,16 @@ pub const MENU_ITEM_GAP: f32 = 8.0;
 pub struct MenuBuilder<'a> {
     font: &'a PressStart2P,
     typography: &'a Typography,
+    index: usize,
 }
 
 impl<'a> MenuBuilder<'a> {
     pub fn new(font: &'a PressStart2P, typography: &'a Typography) -> Self {
-        Self { font, typography }
+        Self {
+            font,
+            typography,
+            index: 0,
+        }
     }
 
     pub fn title(&self, parent: &mut ChildSpawnerCommands, text: impl Into<String>) {
@@ -20,16 +25,18 @@ impl<'a> MenuBuilder<'a> {
     }
 
     pub fn item(
-        &self,
+        &mut self,
         parent: &mut ChildSpawnerCommands,
         action: MenuAction,
         text: impl Into<String>,
     ) {
-        spawn_menu_item(parent, self.font, self.typography, action, text)
+        spawn_menu_item(parent, self.font, self.typography, action, text, self.index);
+        self.index += 1;
     }
 
-    pub fn back_button(&self, parent: &mut ChildSpawnerCommands, action: MenuAction) {
-        spawn_back_button_section(parent, self.font, self.typography, action)
+    pub fn back_button(&mut self, parent: &mut ChildSpawnerCommands, action: MenuAction) {
+        spawn_back_button_section(parent, self.font, self.typography, action, self.index);
+        self.index += 1;
     }
 }
 
@@ -48,10 +55,11 @@ pub fn spawn_menu_item(
     typography: &Typography,
     action: MenuAction,
     text: impl Into<String>,
+    index: usize,
 ) {
     parent
         .spawn((
-            MenuItem { action },
+            MenuItem { action, index },
             Node {
                 flex_direction: FlexDirection::Row,
                 align_items: AlignItems::Center,
@@ -86,6 +94,7 @@ pub fn spawn_back_button_section(
     font: &PressStart2P,
     typography: &Typography,
     action: MenuAction,
+    index: usize,
 ) {
     parent
         .spawn((
@@ -96,7 +105,7 @@ pub fn spawn_back_button_section(
             },
         ))
         .with_children(|button_parent| {
-            spawn_menu_item(button_parent, font, typography, action, "Back");
+            spawn_menu_item(button_parent, font, typography, action, "Back", index);
         });
 }
 
@@ -105,6 +114,7 @@ pub enum MenuAction {
     GoToGameSelection,
     GoToTitle,
     GoToPongGame,
+    GoToSpaceInvadersGame,
     OpenSettings,
     OpenCredits,
     BackToMainMenu,
@@ -119,6 +129,7 @@ pub enum MenuAction {
 #[derive(Component)]
 pub struct MenuItem {
     pub action: MenuAction,
+    pub index: usize,
 }
 
 #[derive(Resource, Default)]

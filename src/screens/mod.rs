@@ -1,6 +1,7 @@
 mod game_selection;
 mod loading;
 mod pong_game;
+mod space_invaders_game;
 mod splash;
 mod title;
 
@@ -13,6 +14,7 @@ pub(super) fn plugin(app: &mut App) {
         game_selection::plugin,
         loading::plugin,
         pong_game::plugin,
+        space_invaders_game::plugin,
         splash::plugin,
         title::plugin,
     ));
@@ -27,4 +29,5 @@ pub enum Screen {
     Loading,
     GameSelection,
     PongGame,
+    SpaceInvadersGame,
 }

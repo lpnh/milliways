@@ -10,7 +10,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
-    let menu = MenuBuilder::new(&font, &typography);
+    let mut menu = MenuBuilder::new(&font, &typography);
 
     commands
         .spawn((
@@ -29,6 +29,7 @@ fn spawn_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<T
         ))
         .with_children(|parent| {
             menu.item(parent, MenuAction::GoToPongGame, "Pong");
+            menu.item(parent, MenuAction::GoToSpaceInvadersGame, "Space Invaders");
             menu.back_button(parent, MenuAction::GoToTitle);
         });
 }

@@ -8,6 +8,7 @@ mod dev_tools;
 mod menus;
 mod pong;
 mod screens;
+mod space_invaders;
 mod ui;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -44,6 +45,7 @@ impl Plugin for AppPlugin {
             dev_tools::plugin,
             menus::plugin,
             pong::plugin,
+            space_invaders::plugin,
             screens::plugin,
             ui::plugin,
         ));

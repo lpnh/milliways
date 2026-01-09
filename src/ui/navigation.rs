@@ -62,9 +62,11 @@ pub fn handle_menu_navigation(
     sfx_handles: Res<SoundEffects>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut nav: ResMut<MenuNavigation>,
-    items: Query<Entity, With<MenuItem>>,
+    items: Query<(Entity, &MenuItem)>,
 ) {
-    let items_vec: Vec<Entity> = items.iter().collect();
+    let mut items_vec: Vec<(Entity, &MenuItem)> = items.iter().collect();
+    items_vec.sort_by_key(|(_, item)| item.index);
+    let items_vec: Vec<Entity> = items_vec.into_iter().map(|(entity, _)| entity).collect();
 
     if items_vec.is_empty() {
         return;
@@ -182,6 +184,7 @@ fn execute_action(
         }
         MenuAction::GoToTitle => next_screen.set(Screen::Title),
         MenuAction::GoToPongGame => next_screen.set(Screen::PongGame),
+        MenuAction::GoToSpaceInvadersGame => next_screen.set(Screen::SpaceInvadersGame),
         MenuAction::OpenSettings => next_menu.set(Menu::Settings),
         MenuAction::OpenCredits => next_menu.set(Menu::Credits),
         MenuAction::BackToMainMenu => next_menu.set(Menu::Main),

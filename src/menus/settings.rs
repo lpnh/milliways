@@ -18,7 +18,7 @@ fn spawn_settings_menu(
     font: Res<PressStart2P>,
     typography: Res<Typography>,
 ) {
-    let menu = MenuBuilder::new(&font, &typography);
+    let mut menu = MenuBuilder::new(&font, &typography);
 
     commands
         .spawn((

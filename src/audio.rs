@@ -14,6 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::MilliwaysSplash), spawn_arcade_music);
 
     app.add_systems(OnEnter(Screen::PongGame), despawn_arcade_music);
+    app.add_systems(OnEnter(Screen::SpaceInvadersGame), despawn_arcade_music);
 }
 
 fn load_sound_effects(mut commands: Commands, asset_server: Res<AssetServer>) {

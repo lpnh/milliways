@@ -14,7 +14,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn spawn_pause_menu(mut commands: Commands, font: Res<PressStart2P>, typography: Res<Typography>) {
-    let menu = MenuBuilder::new(&font, &typography);
+    let mut menu = MenuBuilder::new(&font, &typography);
 
     commands
         .spawn((
